@@ -13,7 +13,7 @@ var __assign = (this && this.__assign) || function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
 //AIV stands for async iterator virtualization
-function InfiniteVirtualizeScroll(props) {
+function InfiniteVirtualScroll(props) {
     var _a = React.useState(undefined), _ = _a[0], rerender = _a[1];
     var state = React.useMemo(function () {
         return {
@@ -38,11 +38,10 @@ function InfiniteVirtualizeScroll(props) {
             state.iterator.next().then(function (value) {
                 loading = false;
                 if (!value.done && !!viewPort) {
-                    console.log('loadMore');
                     state.end += value.value.length;
                     state.bottomSpace = 0;
                     state.data = state.data.concat(value.value);
-                    rerender(undefined);
+                    rerender({});
                 }
             });
         };
@@ -104,7 +103,7 @@ function InfiniteVirtualizeScroll(props) {
                 if (state.end >= state.data.length) {
                     loadMore();
                 }
-                shouldRerender && rerender(undefined);
+                shouldRerender && rerender({});
             }
         }
         viewPort && viewPort.parentElement && viewPort.parentElement.addEventListener("scroll", onScroll);
@@ -123,4 +122,5 @@ function InfiniteVirtualizeScroll(props) {
                 marginBottom: state.bottomSpace,
             } }, props.children(state.data.slice(state.start, state.end))));
 }
-exports.InfiniteVirtualizeScroll = InfiniteVirtualizeScroll;
+exports.default = InfiniteVirtualScroll;
+//# sourceMappingURL=index.js.map

@@ -7,7 +7,7 @@ type VirtualizeProps<T> = {
 }
 
 //AIV stands for async iterator virtualization
-export function InfiniteVirtualizeScroll<T>(props:VirtualizeProps<T>){
+export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
     
     const [_,rerender] = React.useState(undefined)
 
@@ -35,11 +35,10 @@ export function InfiniteVirtualizeScroll<T>(props:VirtualizeProps<T>){
             state.iterator.next().then(value=>{
                 loading = false
                 if(!value.done && !!viewPort){
-                    console.log('loadMore')
                     state.end += value.value.length
                     state.bottomSpace = 0
                     state.data = state.data.concat(value.value)
-                    rerender(undefined)
+                    rerender({})
                 }
             })
         }
@@ -100,7 +99,7 @@ export function InfiniteVirtualizeScroll<T>(props:VirtualizeProps<T>){
                 if(state.end >= state.data.length){
                     loadMore()
                 }
-                shouldRerender && rerender(undefined)
+                shouldRerender && rerender({})
             }
         }
         viewPort && viewPort.parentElement && viewPort.parentElement.addEventListener("scroll",onScroll)
