@@ -14,6 +14,7 @@ There are already many virtualize list libraries out there, but I can't find one
 - High Performance
 
 # How
+*Important: You Must set a fixed height via style prop for it to work!*
 
 ```tsx
 import InfiniteVirtualScroll from "react-infinite-virtual-scroll"
