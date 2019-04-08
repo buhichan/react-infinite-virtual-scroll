@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "outDir": "build",
+        "target": "es5",
+        "jsx": "react",
+        "sourceMap": true,
+        "lib":["dom","es2015","scripthost","esnext.asynciterable"]
+    }
+}

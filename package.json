@@ -1,0 +1,15 @@
+{
+  "name": "react-infinite-virtual-scroll",
+  "version": "0.0.1",
+  "description": "infinite virtual scroll with react and async iterator",
+  "main": "build/index.js",
+  "author": "buhichan",
+  "repository": "https://github.com/buhichan/react-infinite-virtual-scroll",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/react": "^16.8.13"
+  },
+  "peerDependencies": {
+    "react": "^16.8.13"
+  }
+}
