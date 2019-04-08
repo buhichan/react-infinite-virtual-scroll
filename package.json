@@ -5,7 +5,7 @@
   "main": "build/index.js",
   "author": "buhichan",
   "repository": "https://github.com/buhichan/react-infinite-virtual-scroll",
-  "license": "MIT",
+  "license": "https://github.com/996icu/996.ICU/blob/master/LICENSE",
   "devDependencies": {
     "@types/react": "^16.8.13"
   },

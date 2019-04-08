@@ -48,5 +48,7 @@ function Foo(){
         </InfiniteVirtualScroll>
     </div>
 }
-
 ```
+
+# License
+[Anti996](https://github.com/996icu/996.ICU/blob/master/LICENSE)
