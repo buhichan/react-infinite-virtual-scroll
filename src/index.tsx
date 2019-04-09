@@ -116,7 +116,7 @@ export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
 
     return <div style={{
         overflow:"auto",
-        "-webkit-overflow-scrolling":"touch",
+        WebkitOverflowScrolling:"touch",
         ...props.style,
     }}>
         <div ref={viewPortRef} style={{

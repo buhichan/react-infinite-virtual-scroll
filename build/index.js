@@ -116,7 +116,7 @@ function InfiniteVirtualScroll(props) {
         };
     }, [props.dataSource]);
     var viewPortRef = React.useRef(null);
-    return React.createElement("div", { style: __assign({ overflow: "auto", "-webkit-overflow-scrolling": "touch" }, props.style) },
+    return React.createElement("div", { style: __assign({ overflow: "auto", WebkitOverflowScrolling: "touch" }, props.style) },
         React.createElement("div", { ref: viewPortRef, style: {
                 marginTop: state.topSpace,
                 marginBottom: state.bottomSpace,
