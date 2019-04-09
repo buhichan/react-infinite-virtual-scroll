@@ -115,8 +115,9 @@ export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
     const viewPortRef = React.useRef(null as HTMLDivElement | null)
 
     return <div style={{
-        ...props.style,
         overflow:"auto",
+        "-webkit-overflow-scrolling":"touch",
+        ...props.style,
     }}>
         <div ref={viewPortRef} style={{
             marginTop:state.topSpace,
