@@ -6,6 +6,8 @@ type VirtualizeProps<T> = {
     children:(t:T[])=>React.ReactNode
 }
 
+const MAX_LOOP_COUNT = 10000
+
 //AIV stands for async iterator virtualization
 export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
     
@@ -58,7 +60,11 @@ export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
                 const setHiddenElementHeight = (index:number,height:number)=>{
                     state.heightMap[index] = height
                 }
-                while(container.scrollTop < state.topSpace){
+                let loopCount = 0
+                // scrollTop must be clamped since in some browser it may drop below zero
+                const scrollTop = Math.max(0, container.scrollTop)
+
+                while(scrollTop < state.topSpace && loopCount++ < MAX_LOOP_COUNT){
                     //scroll to top, -start
                     // console.log("head in")
                     if(state.start > 0){
@@ -67,7 +73,7 @@ export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
                         shouldRerender = true
                     }
                 }
-                while(lastChild && container.scrollHeight - container.clientHeight - container.scrollTop > state.bottomSpace + lastChild.clientHeight ){
+                while(lastChild && container.scrollHeight - container.clientHeight - scrollTop > state.bottomSpace + lastChild.clientHeight && loopCount++ < MAX_LOOP_COUNT){
                     //scroll to top, -end
                     // console.log("tail out")
                     setHiddenElementHeight(state.end-1, lastChild.clientHeight)
@@ -76,7 +82,7 @@ export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
                     lastChild = lastChild.previousElementSibling as HTMLElement | null
                     shouldRerender = true
                 }
-                while(firstChild && container.scrollTop > state.topSpace + firstChild.clientHeight){
+                while(firstChild &&scrollTop > state.topSpace + firstChild.clientHeight  && loopCount++ < MAX_LOOP_COUNT){
                     //scroll to bottom, +start
                     // console.log("head out")
                     setHiddenElementHeight(state.start, firstChild.clientHeight)
@@ -85,7 +91,7 @@ export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
                     firstChild = firstChild.nextElementSibling as HTMLElement | null
                     shouldRerender = true
                 }
-                while(container.scrollHeight - container.clientHeight - container.scrollTop  < state.bottomSpace ){
+                while(container.scrollHeight - container.clientHeight - scrollTop  < state.bottomSpace  && loopCount++ < MAX_LOOP_COUNT){
                     //scroll to bottom, +end
                     if(state.end < state.data.length){
                         // console.log("tail in")
@@ -98,6 +104,9 @@ export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
                 }
                 if(state.end >= state.data.length){
                     loadMore()
+                }
+                if(loopCount > MAX_LOOP_COUNT){
+                    throw new Error("Loop count exceeded, it's a bug, please file an issue")
                 }
                 shouldRerender && rerender({})
             }

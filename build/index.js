@@ -12,6 +12,7 @@ var __assign = (this && this.__assign) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
+var MAX_LOOP_COUNT = 10000;
 //AIV stands for async iterator virtualization
 function InfiniteVirtualScroll(props) {
     var _a = React.useState(undefined), _ = _a[0], rerender = _a[1];
@@ -61,7 +62,10 @@ function InfiniteVirtualScroll(props) {
                 var setHiddenElementHeight = function (index, height) {
                     state.heightMap[index] = height;
                 };
-                while (container.scrollTop < state.topSpace) {
+                var loopCount = 0;
+                // scrollTop must be clamped since in some browser it may drop below zero
+                var scrollTop = Math.max(0, container.scrollTop);
+                while (scrollTop < state.topSpace && loopCount++ < MAX_LOOP_COUNT) {
                     //scroll to top, -start
                     // console.log("head in")
                     if (state.start > 0) {
@@ -70,7 +74,7 @@ function InfiniteVirtualScroll(props) {
                         shouldRerender = true;
                     }
                 }
-                while (lastChild && container.scrollHeight - container.clientHeight - container.scrollTop > state.bottomSpace + lastChild.clientHeight) {
+                while (lastChild && container.scrollHeight - container.clientHeight - scrollTop > state.bottomSpace + lastChild.clientHeight && loopCount++ < MAX_LOOP_COUNT) {
                     //scroll to top, -end
                     // console.log("tail out")
                     setHiddenElementHeight(state.end - 1, lastChild.clientHeight);
@@ -79,7 +83,7 @@ function InfiniteVirtualScroll(props) {
                     lastChild = lastChild.previousElementSibling;
                     shouldRerender = true;
                 }
-                while (firstChild && container.scrollTop > state.topSpace + firstChild.clientHeight) {
+                while (firstChild && scrollTop > state.topSpace + firstChild.clientHeight && loopCount++ < MAX_LOOP_COUNT) {
                     //scroll to bottom, +start
                     // console.log("head out")
                     setHiddenElementHeight(state.start, firstChild.clientHeight);
@@ -88,7 +92,7 @@ function InfiniteVirtualScroll(props) {
                     firstChild = firstChild.nextElementSibling;
                     shouldRerender = true;
                 }
-                while (container.scrollHeight - container.clientHeight - container.scrollTop < state.bottomSpace) {
+                while (container.scrollHeight - container.clientHeight - scrollTop < state.bottomSpace && loopCount++ < MAX_LOOP_COUNT) {
                     //scroll to bottom, +end
                     if (state.end < state.data.length) {
                         // console.log("tail in")
@@ -102,6 +106,9 @@ function InfiniteVirtualScroll(props) {
                 }
                 if (state.end >= state.data.length) {
                     loadMore();
+                }
+                if (loopCount > MAX_LOOP_COUNT) {
+                    throw new Error("Loop count exceeded, it's a bug, please file an issue");
                 }
                 shouldRerender && rerender({});
             }
