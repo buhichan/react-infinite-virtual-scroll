@@ -62,6 +62,7 @@ export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
                 }
                 let loopCount = 0
                 // scrollTop must be clamped since in some browser it may drop below zero
+                // TODO: reading scrollTop cause reflow, how to avoid it ?
                 const scrollTop = Math.max(0, container.scrollTop)
 
                 while(scrollTop < state.topSpace && loopCount++ < MAX_LOOP_COUNT){

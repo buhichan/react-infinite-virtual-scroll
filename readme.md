@@ -1,6 +1,6 @@
 # React Infinite Virtual Scroll
 
-demo: [github page](https://buhichan.github.io/react-infinite-virtual-scroll/demo)
+demo: [github page](https://buhichan.github.io/#/virtual-scroll-demo)
 
 # Why
 

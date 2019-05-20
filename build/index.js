@@ -64,6 +64,7 @@ function InfiniteVirtualScroll(props) {
                 };
                 var loopCount = 0;
                 // scrollTop must be clamped since in some browser it may drop below zero
+                // TODO: reading scrollTop cause reflow, how to avoid it ?
                 var scrollTop = Math.max(0, container.scrollTop);
                 while (scrollTop < state.topSpace && loopCount++ < MAX_LOOP_COUNT) {
                     //scroll to top, -start
