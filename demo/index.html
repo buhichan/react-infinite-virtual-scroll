@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div id='root'></div>
+    <script type="module">
+        import React from "https://dev.jspm.io/react"
+        import ReactDOM from "https://dev.jspm.io/react-dom"
+        const exports = {}
+
+        window['require'] = (mo)=>{
+            if(mo === 'react')
+                return React
+        }
+
+        fetch("../build/index.js").then(x=>x.text()).then(js=>{
+            eval(js)
+            const InfiniteScroll = exports.default
+            function Main(){
+                const dataSource = React.useMemo(()=>{
+                    return async function *getData(){
+                        let total = 1000
+                        let page = 0
+                        while(page * 20 < total){
+                            page ++
+                            console.log("loadData")
+                            yield new Array(20).fill(0).map((_,i)=>({
+                                id:page * 20 + i,
+                                height: Math.random() * 10 + 20,
+                                name:"No."+ (page * 20 + i)
+                            }))
+                        }
+                    }
+                },[])
+                return React.createElement(InfiniteScroll, {dataSource, style:{height:200}}, data=>{
+                    return data.map(x=>{
+                        return React.createElement("div",{key:x.id,style:{height:x.height}},`${x.name}(${x.height.toFixed(2)}px height)`)
+                    })
+                })
+            }
+            ReactDOM.render(React.createElement(Main), document.getElementById("root"))
+        })
+
+    </script>
+</body>
+</html>
