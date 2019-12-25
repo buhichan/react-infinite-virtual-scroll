@@ -112,7 +112,9 @@ export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
                 shouldRerender && rerender({})
             }
         }
-        viewPort && viewPort.parentElement && viewPort.parentElement.addEventListener("scroll",onScroll)
+        viewPort && viewPort.parentElement && viewPort.parentElement.addEventListener("scroll",onScroll,{
+            passive: true
+        })
         if(viewPort && viewPort.parentNode && viewPort.clientHeight < (viewPort.parentNode as HTMLElement).clientHeight){
             loadMore()
         }

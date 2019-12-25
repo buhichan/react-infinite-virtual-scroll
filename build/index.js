@@ -114,7 +114,9 @@ function InfiniteVirtualScroll(props) {
                 shouldRerender && rerender({});
             }
         }
-        viewPort && viewPort.parentElement && viewPort.parentElement.addEventListener("scroll", onScroll);
+        viewPort && viewPort.parentElement && viewPort.parentElement.addEventListener("scroll", onScroll, {
+            passive: true
+        });
         if (viewPort && viewPort.parentNode && viewPort.clientHeight < viewPort.parentNode.clientHeight) {
             loadMore();
         }
