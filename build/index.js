@@ -14,20 +14,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
 var MAX_LOOP_COUNT = 10000;
 function useInfiniteVirtualScroll(props) {
-    var _a = React.useState(false), _ = _a[0], forceRerender = _a[1];
-    var state = React.useMemo(function () {
+    var nextState = React.useMemo(function () {
         return {
             iterator: props.dataSource(),
             data: [],
             total: null,
-            heightMap: {},
             start: 0,
             end: 0,
             topSpace: 0,
             bottomSpace: 0,
-            done: false
+            done: false,
+            heightMap: {},
+            isInitial: true,
         };
     }, [props.dataSource]);
+    var _a = React.useState(nextState), state = _a[0], updateState = _a[1];
     React.useLayoutEffect(function () {
         var viewPort = viewPortRef.current;
         var loading = false;
@@ -36,104 +37,130 @@ function useInfiniteVirtualScroll(props) {
                 return;
             }
             loading = true;
-            state.iterator.next().then(function (iteratorResult) {
+            nextState.iterator.next().then(function (iteratorResult) {
                 loading = false;
-                if (!iteratorResult.done && !!viewPort) {
+                if (!iteratorResult.done) {
                     var value = iteratorResult.value;
                     if (Array.isArray(value)) {
-                        state.end += value.length;
-                        state.bottomSpace = 0;
-                        state.data = state.data.concat(value);
-                        state.total = null;
+                        nextState.end += value.length;
+                        nextState.bottomSpace = 0;
+                        nextState.data = nextState.data.concat(value);
+                        nextState.total = null;
                     }
                     else {
-                        state.end += value.data.length;
-                        state.bottomSpace = 0;
-                        state.data = state.data.concat(value.data);
-                        state.total = value.total;
+                        nextState.end += value.data.length;
+                        nextState.bottomSpace = 0;
+                        nextState.data = nextState.data.concat(value.data);
+                        nextState.total = value.total;
                     }
-                    forceRerender(function (x) { return !x; });
+                    updateState(__assign({}, nextState));
                 }
             });
         };
-        function onScroll(e) {
-            if (viewPort) {
-                var shouldRerender = false;
-                var container = viewPort.parentElement;
-                var lastChild = viewPort.lastChild;
-                var firstChild = viewPort.firstChild;
-                var getHiddenElementHeight = function (index) {
-                    var res = state.heightMap[index];
-                    if (!res) {
-                        console.error("Failed to get height of hidden element");
-                    }
-                    return res || 0;
-                };
-                var setHiddenElementHeight = function (index, height) {
-                    state.heightMap[index] = height;
-                };
-                var loopCount = 0;
-                // scrollTop must be clamped since in some browser it may drop below zero
-                // TODO: reading scrollTop cause reflow, how to avoid it ?
-                var scrollTop = Math.max(0, container.scrollTop);
-                while (scrollTop < state.topSpace && loopCount++ < MAX_LOOP_COUNT) {
-                    //scroll to top, -start
-                    // console.log("head in")
-                    if (state.start > 0) {
-                        state.start -= 1;
-                        state.topSpace -= getHiddenElementHeight(state.start);
-                        shouldRerender = true;
-                    }
-                }
-                while (lastChild && container.scrollHeight - container.clientHeight - scrollTop > state.bottomSpace + lastChild.clientHeight && loopCount++ < MAX_LOOP_COUNT) {
-                    //scroll to top, -end
-                    // console.log("tail out")
-                    setHiddenElementHeight(state.end - 1, lastChild.clientHeight);
-                    state.bottomSpace += lastChild.clientHeight;
-                    state.end -= 1;
-                    lastChild = lastChild.previousElementSibling;
-                    shouldRerender = true;
-                }
-                while (firstChild && scrollTop > state.topSpace + firstChild.clientHeight && loopCount++ < MAX_LOOP_COUNT) {
-                    //scroll to bottom, +start
-                    // console.log("head out")
-                    setHiddenElementHeight(state.start, firstChild.clientHeight);
-                    state.topSpace += firstChild.clientHeight;
-                    state.start += 1;
-                    firstChild = firstChild.nextElementSibling;
-                    shouldRerender = true;
-                }
-                while (container.scrollHeight - container.clientHeight - scrollTop < state.bottomSpace && loopCount++ < MAX_LOOP_COUNT) {
-                    //scroll to bottom, +end
-                    if (state.end < state.data.length) {
-                        // console.log("tail in")
-                        state.bottomSpace -= getHiddenElementHeight(state.end);
-                        state.end += 1;
-                        shouldRerender = true;
-                    }
-                    else {
-                        break;
-                    }
-                }
-                if (state.end >= state.data.length) {
-                    loadMore();
-                }
-                if (loopCount > MAX_LOOP_COUNT) {
-                    throw new Error("Max loop count (" + MAX_LOOP_COUNT + ") exceeded, it's a bug, please file an issue");
-                }
-                shouldRerender && forceRerender(function (x) { return !x; });
-            }
-        }
-        viewPort && viewPort.parentElement && viewPort.parentElement.addEventListener("scroll", onScroll, {
-            passive: true
-        });
-        if (viewPort && viewPort.parentNode && viewPort.clientHeight < viewPort.parentNode.clientHeight) {
+        if (nextState.isInitial) {
+            nextState.isInitial = false;
             loadMore();
         }
-        return function () {
-            viewPort && viewPort.parentElement && viewPort.parentElement.removeEventListener('scroll', onScroll);
-            viewPort = null;
-        };
+        else if (viewPort && viewPort.parentElement && viewPort.parentNode) {
+            var onScroll_1 = function (e) {
+                if (viewPort) {
+                    var shouldRerender = false;
+                    var container = viewPort.parentElement;
+                    var lastChild = viewPort.lastChild;
+                    var firstChild = viewPort.firstChild;
+                    var getHiddenElementHeight = function (index) {
+                        var res = nextState.heightMap[index];
+                        if (!res) {
+                            console.error("Failed to get height of hidden element");
+                        }
+                        return res || 0;
+                    };
+                    var setHiddenElementHeight = function (index, height) {
+                        nextState.heightMap[index] = height;
+                    };
+                    var loopCount = 0;
+                    // scrollTop must be clamped since in some browser it may drop below zero
+                    // TODO: reading scrollTop cause reflow, how to avoid it ?
+                    var scrollTop = Math.max(0, container.scrollTop);
+                    while (scrollTop < nextState.topSpace &&
+                        loopCount++ < MAX_LOOP_COUNT) {
+                        //scroll to top, -start
+                        // console.log("head in")
+                        if (nextState.start > 0) {
+                            nextState.start -= 1;
+                            nextState.topSpace -= getHiddenElementHeight(nextState.start);
+                            shouldRerender = true;
+                        }
+                    }
+                    while (lastChild &&
+                        container.scrollHeight -
+                            container.clientHeight -
+                            scrollTop >
+                            nextState.bottomSpace + lastChild.clientHeight &&
+                        loopCount++ < MAX_LOOP_COUNT) {
+                        //scroll to top, -end
+                        // console.log("tail out")
+                        setHiddenElementHeight(nextState.end - 1, lastChild.clientHeight);
+                        nextState.bottomSpace += lastChild.clientHeight;
+                        nextState.end -= 1;
+                        lastChild = lastChild.previousElementSibling;
+                        shouldRerender = true;
+                    }
+                    while (firstChild &&
+                        scrollTop >
+                            nextState.topSpace + firstChild.clientHeight &&
+                        loopCount++ < MAX_LOOP_COUNT) {
+                        //scroll to bottom, +start
+                        // console.log("head out")
+                        setHiddenElementHeight(nextState.start, firstChild.clientHeight);
+                        nextState.topSpace += firstChild.clientHeight;
+                        nextState.start += 1;
+                        firstChild = firstChild.nextElementSibling;
+                        shouldRerender = true;
+                    }
+                    while (container.scrollHeight -
+                        container.clientHeight -
+                        scrollTop <
+                        nextState.bottomSpace &&
+                        loopCount++ < MAX_LOOP_COUNT) {
+                        //scroll to bottom, +end
+                        if (nextState.end < nextState.data.length) {
+                            // console.log("tail in")
+                            nextState.bottomSpace -= getHiddenElementHeight(nextState.end);
+                            nextState.end += 1;
+                            shouldRerender = true;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    if (nextState.end >= nextState.data.length) {
+                        loadMore();
+                    }
+                    if (loopCount > MAX_LOOP_COUNT) {
+                        throw new Error("Max loop count (" + MAX_LOOP_COUNT + ") exceeded, it's a bug, please file an issue");
+                    }
+                    shouldRerender && updateState(__assign({}, nextState));
+                }
+            };
+            viewPort &&
+                viewPort.parentElement &&
+                viewPort.parentElement.addEventListener("scroll", onScroll_1, {
+                    passive: true,
+                });
+            if (viewPort &&
+                viewPort.parentNode &&
+                viewPort.clientHeight <
+                    viewPort.parentNode.clientHeight) {
+                loadMore();
+            }
+            return function () {
+                viewPort &&
+                    viewPort.parentElement &&
+                    viewPort.parentElement.removeEventListener("scroll", onScroll_1);
+                viewPort = null;
+            };
+        }
     }, [props.dataSource]);
     var viewPortRef = React.useRef(null);
     return __assign({ viewPortRef: viewPortRef }, state);
@@ -142,11 +169,11 @@ exports.useInfiniteVirtualScroll = useInfiniteVirtualScroll;
 //AIV stands for async iterator virtualization
 function InfiniteVirtualScroll(props) {
     var state = props.state;
-    return React.createElement("div", { style: __assign({ overflow: "auto", WebkitOverflowScrolling: "touch" }, props.style) },
+    return (React.createElement("div", { style: __assign({ overflow: "auto", WebkitOverflowScrolling: "touch" }, props.style) },
         React.createElement("div", { ref: state.viewPortRef, style: {
                 marginTop: state.topSpace,
                 marginBottom: state.bottomSpace,
-            } }, props.children(state.data.slice(state.start, state.end))));
+            } }, props.children(state.data.slice(state.start, state.end)))));
 }
 exports.default = InfiniteVirtualScroll;
 //# sourceMappingURL=index.js.map

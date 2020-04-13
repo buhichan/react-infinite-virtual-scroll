@@ -1,8 +1,8 @@
-import * as React from 'react';
-declare type VirtualizeIterator<T> = AsyncIterableIterator<T[] | ({
+import * as React from "react";
+declare type VirtualizeIterator<T> = AsyncIterableIterator<T[] | {
     data: T[];
     total: number;
-})>;
+}>;
 declare type VirtualizeProps<T> = {
     dataSource: () => VirtualizeIterator<T>;
 };
@@ -16,9 +16,6 @@ declare type VirtualizeState<T> = {
     data: T[];
     total: number | null;
     done: boolean;
-    heightMap: {
-        [index: number]: number;
-    };
 };
 export declare function useInfiniteVirtualScroll<T>(props: VirtualizeProps<T>): VirtualizeState<T>;
 export declare type IVSProps<T> = {
