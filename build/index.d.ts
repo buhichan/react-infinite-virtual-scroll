@@ -5,7 +5,6 @@ declare type VirtualizeIterator<T> = AsyncIterableIterator<T[] | ({
 })>;
 declare type VirtualizeProps<T> = {
     dataSource: () => VirtualizeIterator<T>;
-    style?: React.CSSProperties;
 };
 declare type VirtualizeState<T> = {
     viewPortRef: React.MutableRefObject<HTMLElement>;

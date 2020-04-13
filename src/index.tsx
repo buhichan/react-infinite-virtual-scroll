@@ -4,7 +4,6 @@ type VirtualizeIterator<T> = AsyncIterableIterator<T[]|({data:T[], total: number
 
 type VirtualizeProps<T> = {
     dataSource:()=>VirtualizeIterator<T>
-    style?:React.CSSProperties,
 }
 
 type VirtualizeState<T> = {
