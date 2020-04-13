@@ -1,8 +1,31 @@
 import * as React from 'react';
+declare type VirtualizeIterator<T> = AsyncIterableIterator<T[] | ({
+    data: T[];
+    total: number;
+})>;
 declare type VirtualizeProps<T> = {
-    dataSource: () => AsyncIterableIterator<T[]>;
+    dataSource: () => VirtualizeIterator<T>;
+    style?: React.CSSProperties;
+};
+declare type VirtualizeState<T> = {
+    viewPortRef: React.MutableRefObject<HTMLElement>;
+    iterator: VirtualizeIterator<T>;
+    start: number;
+    end: number;
+    topSpace: number;
+    bottomSpace: number;
+    data: T[];
+    total: number | null;
+    done: boolean;
+    heightMap: {
+        [index: number]: number;
+    };
+};
+export declare function useInfiniteVirtualScroll<T>(props: VirtualizeProps<T>): VirtualizeState<T>;
+export declare type IVSProps<T> = {
+    state: VirtualizeState<T>;
     style?: React.CSSProperties;
     children: (t: T[]) => React.ReactNode;
 };
-export default function InfiniteVirtualScroll<T>(props: VirtualizeProps<T>): JSX.Element;
+export default function InfiniteVirtualScroll<T>(props: IVSProps<T>): JSX.Element;
 export {};

@@ -13,13 +13,13 @@ var __assign = (this && this.__assign) || function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
 var MAX_LOOP_COUNT = 10000;
-//AIV stands for async iterator virtualization
-function InfiniteVirtualScroll(props) {
-    var _a = React.useState(undefined), _ = _a[0], rerender = _a[1];
+function useInfiniteVirtualScroll(props) {
+    var _a = React.useState(false), _ = _a[0], forceRerender = _a[1];
     var state = React.useMemo(function () {
         return {
             iterator: props.dataSource(),
             data: [],
+            total: null,
             heightMap: {},
             start: 0,
             end: 0,
@@ -36,13 +36,23 @@ function InfiniteVirtualScroll(props) {
                 return;
             }
             loading = true;
-            state.iterator.next().then(function (value) {
+            state.iterator.next().then(function (iteratorResult) {
                 loading = false;
-                if (!value.done && !!viewPort) {
-                    state.end += value.value.length;
-                    state.bottomSpace = 0;
-                    state.data = state.data.concat(value.value);
-                    rerender({});
+                if (!iteratorResult.done && !!viewPort) {
+                    var value = iteratorResult.value;
+                    if (Array.isArray(value)) {
+                        state.end += value.length;
+                        state.bottomSpace = 0;
+                        state.data = state.data.concat(value);
+                        state.total = null;
+                    }
+                    else {
+                        state.end += value.data.length;
+                        state.bottomSpace = 0;
+                        state.data = state.data.concat(value.data);
+                        state.total = value.total;
+                    }
+                    forceRerender(function (x) { return !x; });
                 }
             });
         };
@@ -109,9 +119,9 @@ function InfiniteVirtualScroll(props) {
                     loadMore();
                 }
                 if (loopCount > MAX_LOOP_COUNT) {
-                    throw new Error("Loop count exceeded, it's a bug, please file an issue");
+                    throw new Error("Max loop count (" + MAX_LOOP_COUNT + ") exceeded, it's a bug, please file an issue");
                 }
-                shouldRerender && rerender({});
+                shouldRerender && forceRerender(function (x) { return !x; });
             }
         }
         viewPort && viewPort.parentElement && viewPort.parentElement.addEventListener("scroll", onScroll, {
@@ -126,8 +136,14 @@ function InfiniteVirtualScroll(props) {
         };
     }, [props.dataSource]);
     var viewPortRef = React.useRef(null);
+    return __assign({ viewPortRef: viewPortRef }, state);
+}
+exports.useInfiniteVirtualScroll = useInfiniteVirtualScroll;
+//AIV stands for async iterator virtualization
+function InfiniteVirtualScroll(props) {
+    var state = props.state;
     return React.createElement("div", { style: __assign({ overflow: "auto", WebkitOverflowScrolling: "touch" }, props.style) },
-        React.createElement("div", { ref: viewPortRef, style: {
+        React.createElement("div", { ref: state.viewPortRef, style: {
                 marginTop: state.topSpace,
                 marginBottom: state.bottomSpace,
             } }, props.children(state.data.slice(state.start, state.end))));

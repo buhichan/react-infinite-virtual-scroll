@@ -1,22 +1,36 @@
 import * as React from 'react';
 
+type VirtualizeIterator<T> = AsyncIterableIterator<T[]|({data:T[], total: number})>;
+
 type VirtualizeProps<T> = {
-    dataSource:()=>AsyncIterableIterator<T[]>
+    dataSource:()=>VirtualizeIterator<T>
     style?:React.CSSProperties,
-    children:(t:T[])=>React.ReactNode
+}
+
+type VirtualizeState<T> = {
+    viewPortRef:React.MutableRefObject<HTMLElement>,
+    iterator: VirtualizeIterator<T>,
+    start: number,
+    end: number,
+    topSpace: number,
+    bottomSpace: number,
+    data: T[],
+    total: number | null,
+    done: boolean,
+    heightMap: {[index: number] : number},
 }
 
 const MAX_LOOP_COUNT = 10000
 
-//AIV stands for async iterator virtualization
-export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
-    
-    const [_,rerender] = React.useState(undefined)
+export function useInfiniteVirtualScroll<T>(props:VirtualizeProps<T>): VirtualizeState<T>{
+
+    const [_,forceRerender] = React.useState(false)
 
     const state = React.useMemo(()=>{
         return {
             iterator:props.dataSource(),
             data:[] as T[],
+            total: null,
             heightMap:{} as {[i:number]:number},
             start:0,
             end:0,
@@ -34,13 +48,22 @@ export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
                 return
             }
             loading = true
-            state.iterator.next().then(value=>{
+            state.iterator.next().then((iteratorResult)=>{
                 loading = false
-                if(!value.done && !!viewPort){
-                    state.end += value.value.length
-                    state.bottomSpace = 0
-                    state.data = state.data.concat(value.value)
-                    rerender({})
+                if(!iteratorResult.done && !!viewPort){
+                    const value = iteratorResult.value as (T[] | {data:T[], total: number})
+                    if(Array.isArray(value)){
+                        state.end += value.length
+                        state.bottomSpace = 0
+                        state.data = state.data.concat(value)
+                        state.total = null
+                    }else{
+                        state.end += value.data.length
+                        state.bottomSpace = 0
+                        state.data = state.data.concat(value.data)
+                        state.total = value.total
+                    }
+                    forceRerender(x=>!x)
                 }
             })
         }
@@ -107,9 +130,9 @@ export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
                     loadMore()
                 }
                 if(loopCount > MAX_LOOP_COUNT){
-                    throw new Error("Loop count exceeded, it's a bug, please file an issue")
+                    throw new Error(`Max loop count (${MAX_LOOP_COUNT}) exceeded, it's a bug, please file an issue`)
                 }
-                shouldRerender && rerender({})
+                shouldRerender && forceRerender(x=>!x)
             }
         }
         viewPort && viewPort.parentElement && viewPort.parentElement.addEventListener("scroll",onScroll,{
@@ -126,12 +149,29 @@ export default function InfiniteVirtualScroll<T>(props:VirtualizeProps<T>){
 
     const viewPortRef = React.useRef(null as HTMLDivElement | null)
 
+    return {
+        viewPortRef,
+        ...state,
+    }
+}
+
+export type IVSProps<T> = {
+    state: VirtualizeState<T>, 
+    style?:React.CSSProperties,
+    children:(t:T[])=>React.ReactNode
+}
+
+//AIV stands for async iterator virtualization
+export default function InfiniteVirtualScroll<T>(props:IVSProps<T>){
+    
+    const state = props.state;
+
     return <div style={{
         overflow:"auto",
         WebkitOverflowScrolling:"touch",
         ...props.style,
     }}>
-        <div ref={viewPortRef} style={{
+        <div ref={state.viewPortRef as any} style={{
             marginTop:state.topSpace,
             marginBottom:state.bottomSpace,
         }}>
