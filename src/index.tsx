@@ -17,7 +17,11 @@ type VirtualizeState<T> = {
     bottomSpace: number
     data: T[]
     total: number | null
-    done: boolean
+    done: boolean,
+    loading: boolean,
+
+    isInitial: boolean,
+    heightMap:{[i:number]:number}
 }
 
 const MAX_LOOP_COUNT = 10000
@@ -25,6 +29,9 @@ const MAX_LOOP_COUNT = 10000
 export function useInfiniteVirtualScroll<T>(
     props: VirtualizeProps<T>
 ): VirtualizeState<T> {
+
+    const viewPortRef = React.useRef(null as HTMLDivElement | null)
+
     const nextState = React.useMemo(() => {
         return {
             iterator: props.dataSource(),
@@ -35,24 +42,28 @@ export function useInfiniteVirtualScroll<T>(
             topSpace: 0,
             bottomSpace: 0,
             done: false,
-
+            loading: false,
             heightMap: {} as { [i: number]: number },
             isInitial: true,
-        }
+        } as Omit<VirtualizeState<T>, 'viewPortRef'>
     }, [props.dataSource])
 
     const [state, updateState] = React.useState(nextState)
 
     React.useLayoutEffect(() => {
         let viewPort = viewPortRef.current
-        let loading = false
+        // let loading = false
         const loadMore = () => {
-            if (loading) {
+            if (nextState.loading) {
                 return
             }
-            loading = true
+            updateState({
+                ...nextState,
+                loading: true
+            })
+            nextState.loading = true
             nextState.iterator.next().then(iteratorResult => {
-                loading = false
+                nextState.loading = false
                 if (!iteratorResult.done) {
                     const value = iteratorResult.value as
                         | T[]
@@ -68,8 +79,8 @@ export function useInfiniteVirtualScroll<T>(
                         nextState.data = nextState.data.concat(value.data)
                         nextState.total = value.total
                     }
-                    updateState({ ...nextState })
                 }
+                updateState({ ...nextState })
             })
         }
 
@@ -207,8 +218,6 @@ export function useInfiniteVirtualScroll<T>(
             }
         }
     }, [props.dataSource])
-
-    const viewPortRef = React.useRef(null as HTMLDivElement | null)
 
     return {
         viewPortRef,

@@ -11,9 +11,11 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.useInfiniteVirtualScroll = void 0;
 var React = require("react");
 var MAX_LOOP_COUNT = 10000;
 function useInfiniteVirtualScroll(props) {
+    var viewPortRef = React.useRef(null);
     var nextState = React.useMemo(function () {
         return {
             iterator: props.dataSource(),
@@ -24,6 +26,7 @@ function useInfiniteVirtualScroll(props) {
             topSpace: 0,
             bottomSpace: 0,
             done: false,
+            loading: false,
             heightMap: {},
             isInitial: true,
         };
@@ -31,14 +34,15 @@ function useInfiniteVirtualScroll(props) {
     var _a = React.useState(nextState), state = _a[0], updateState = _a[1];
     React.useLayoutEffect(function () {
         var viewPort = viewPortRef.current;
-        var loading = false;
+        // let loading = false
         var loadMore = function () {
-            if (loading) {
+            if (nextState.loading) {
                 return;
             }
-            loading = true;
+            updateState(__assign(__assign({}, nextState), { loading: true }));
+            nextState.loading = true;
             nextState.iterator.next().then(function (iteratorResult) {
-                loading = false;
+                nextState.loading = false;
                 if (!iteratorResult.done) {
                     var value = iteratorResult.value;
                     if (Array.isArray(value)) {
@@ -53,8 +57,8 @@ function useInfiniteVirtualScroll(props) {
                         nextState.data = nextState.data.concat(value.data);
                         nextState.total = value.total;
                     }
-                    updateState(__assign({}, nextState));
                 }
+                updateState(__assign({}, nextState));
             });
         };
         if (nextState.isInitial) {
@@ -162,7 +166,6 @@ function useInfiniteVirtualScroll(props) {
             };
         }
     }, [props.dataSource]);
-    var viewPortRef = React.useRef(null);
     return __assign({ viewPortRef: viewPortRef }, state);
 }
 exports.useInfiniteVirtualScroll = useInfiniteVirtualScroll;

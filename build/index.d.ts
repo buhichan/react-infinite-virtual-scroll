@@ -16,6 +16,11 @@ declare type VirtualizeState<T> = {
     data: T[];
     total: number | null;
     done: boolean;
+    loading: boolean;
+    isInitial: boolean;
+    heightMap: {
+        [i: number]: number;
+    };
 };
 export declare function useInfiniteVirtualScroll<T>(props: VirtualizeProps<T>): VirtualizeState<T>;
 export declare type IVSProps<T> = {
