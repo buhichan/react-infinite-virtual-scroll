@@ -16,6 +16,7 @@ type VirtualizeState<T> = {
     topSpace: number
     bottomSpace: number
     data: T[]
+    error: Error | null
     total: number | null
     done: boolean,
     loading: boolean,
@@ -62,6 +63,7 @@ export function useInfiniteVirtualScroll<T>(
                 loading: true
             })
             nextState.loading = true
+            nextState.error = null
             nextState.iterator.next().then(iteratorResult => {
                 nextState.loading = false
                 if (!iteratorResult.done) {
@@ -81,6 +83,9 @@ export function useInfiniteVirtualScroll<T>(
                     }
                 }
                 updateState({ ...nextState })
+            }).catch(err=>{
+                nextState.loading = false
+                updateState({ ...nextState, error: err })
             })
         }
 

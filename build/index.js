@@ -41,6 +41,7 @@ function useInfiniteVirtualScroll(props) {
             }
             updateState(__assign(__assign({}, nextState), { loading: true }));
             nextState.loading = true;
+            nextState.error = null;
             nextState.iterator.next().then(function (iteratorResult) {
                 nextState.loading = false;
                 if (!iteratorResult.done) {
@@ -59,6 +60,9 @@ function useInfiniteVirtualScroll(props) {
                     }
                 }
                 updateState(__assign({}, nextState));
+            }).catch(function (err) {
+                nextState.loading = false;
+                updateState(__assign(__assign({}, nextState), { error: err }));
             });
         };
         if (nextState.isInitial) {

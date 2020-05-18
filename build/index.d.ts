@@ -14,6 +14,7 @@ declare type VirtualizeState<T> = {
     topSpace: number;
     bottomSpace: number;
     data: T[];
+    error: Error | null;
     total: number | null;
     done: boolean;
     loading: boolean;
