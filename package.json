@@ -1,6 +1,6 @@
 {
   "name": "react-infinite-virtual-scroll",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "infinite virtual scroll with react and async iterator",
   "main": "build/index.js",
   "author": "buhichan",
