@@ -65,11 +65,7 @@ function useInfiniteVirtualScroll(props) {
                 updateState(__assign(__assign({}, nextState), { error: err }));
             });
         };
-        if (nextState.isInitial) {
-            nextState.isInitial = false;
-            loadMore();
-        }
-        else if (viewPort && viewPort.parentElement && viewPort.parentNode) {
+        if (viewPort && viewPort.parentElement && viewPort.parentNode) {
             var onScroll_1 = function (e) {
                 if (viewPort) {
                     var shouldRerender = false;
@@ -156,7 +152,11 @@ function useInfiniteVirtualScroll(props) {
                 viewPort.parentElement.addEventListener("scroll", onScroll_1, {
                     passive: true,
                 });
-            if (viewPort &&
+            if (nextState.isInitial) {
+                nextState.isInitial = false;
+                loadMore();
+            }
+            else if (viewPort &&
                 viewPort.parentNode &&
                 viewPort.clientHeight <
                     viewPort.parentNode.clientHeight) {

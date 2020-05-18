@@ -88,11 +88,7 @@ export function useInfiniteVirtualScroll<T>(
                 updateState({ ...nextState, error: err })
             })
         }
-
-        if (nextState.isInitial) {
-            nextState.isInitial = false
-            loadMore()
-        } else if (viewPort && viewPort.parentElement && viewPort.parentNode) {
+        if (viewPort && viewPort.parentElement && viewPort.parentNode) {
             const onScroll = (e: Event) => {
                 if (viewPort) {
                     let shouldRerender = false
@@ -204,7 +200,10 @@ export function useInfiniteVirtualScroll<T>(
                 viewPort.parentElement.addEventListener("scroll", onScroll, {
                     passive: true,
                 })
-            if (
+            if (nextState.isInitial) {
+                nextState.isInitial = false
+                loadMore()
+            }else if (
                 viewPort &&
                 viewPort.parentNode &&
                 viewPort.clientHeight <
