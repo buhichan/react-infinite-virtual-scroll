@@ -58,6 +58,9 @@ export function useInfiniteVirtualScroll<T>(
             if (nextState.loading) {
                 return
             }
+            if (!viewPort) {
+                return
+            }
             updateState({
                 ...nextState,
                 loading: true
@@ -82,10 +85,14 @@ export function useInfiniteVirtualScroll<T>(
                         nextState.total = value.total
                     }
                 }
-                updateState({ ...nextState })
+                if (viewPort) {
+                    updateState({ ...nextState })
+                }
             }).catch(err=>{
                 nextState.loading = false
-                updateState({ ...nextState, error: err })
+                if (viewPort) {
+                    updateState({ ...nextState, error: err })
+                }
             })
         }
         if (viewPort && viewPort.parentElement && viewPort.parentNode) {
